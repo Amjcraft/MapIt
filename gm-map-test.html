@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style type="text/css">
+      html, body, #map-canvas { height: 100%; margin: 0; padding: 0;}
+    </style>
+    <script type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBEhZM-MZn3LziAR_tkluobrHMlU7yEd8M">
+    </script>
+	<script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+<script src="exif-parser-0.1.7.js"></script>
+	<script>
+
+	var validatedFiles = [];
+	function updateSize() {
+	  var nBytes = 0,
+		  oFiles = document.getElementById("uploadInput").files,
+		  nFiles = oFiles.length;
+	  for (var nFileId = 0; nFileId < nFiles; nFileId++) {
+		nBytes += oFiles[nFileId].size;
+	  }
+	  var sOutput = nBytes + " bytes";
+	  // optional code for multiples approximation
+	  for (var aMultiples = ["KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"], nMultiple = 0, nApprox = nBytes / 1024; nApprox > 1; nApprox /= 1024, nMultiple++) {
+		sOutput = nApprox.toFixed(3) + " " + aMultiples[nMultiple] + " (" + nBytes + " bytes)";
+	  }
+	  // end of optional code
+	  document.getElementById("fileNum").innerHTML = nFiles;
+	  document.getElementById("fileSize").innerHTML = sOutput;
+		
+	}
+	</script>
+	
+    <script type="text/javascript">
+    //  function initialize() {
+	
+	
+       
+		//var addMarkerBtn = document.getElementById('submit');
+     // }
+     // google.maps.event.addDomListener(window, 'load', initialize);
+	  
+	//  google.maps.event.addDomListener(addMarkerBtn, 'click', addMapMarker);
+	  
+	  function addMapMarker(location) {
+		  var marker = new google.maps.Marker({
+			position: location,
+			map: map
+		  });
+		  markers.push(marker);
+		}
+
+
+    </script>
+  </head>
+  <body>
+  
+  
+<div id="fileNum"></div>
+<div id="fileSize"></div>
+<form name="uploadForm">
+<input type="hidden" id="MAX_FILE_SIZE" name="MAX_FILE_SIZE" value="300000" />
+	<label for="uploadInput">Files to upload:</label>
+	<input type="file" id="uploadInput" type="file" name="myFiles" onchange="updateSize();" multiple="multiple" />
+	<div id="filedrag">or drop files here</div>
+<p><input type="button" id="submit" onclick="getInfo()" value="Do it"></p>
+</form>
+<div id="messages">
+<p>Status Messages</p>
+</div>
+
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-8">
+			<div id="map-canvas" style="height:500px;"></div>
+		</div><!-- col-md-8 -->
+		
+		<div class="col-md-4">
+			<div id="imagePane">
+			<ul id="thumbslist"></ul>
+			</div>
+		</div><!-- col-md-4 -->
+	</div><!-- Row -->
+	
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+      </div>
+      <div class="modal-body">
+        ...
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+	
+</div><!-- Container-fluid-->
+
+
+
+  
+  <script>
+  
+  
+		var mapOptions = {
+			  center: { lat: 29.231666666666666, lng: -103.33416666666666},
+			  zoom: 8
+		};
+		
+		var _map = new google.maps.Map(document.getElementById('map-canvas'),
+			mapOptions);
+
+		//function MapyMarker(markerLat, markerLng, title){
+		//	this.lat = markerLat;
+		//	this.lng = markerLng;
+		//	this.title = title;
+		//}
+	  /*
+	  function createMapMarker(myMapMarker) {
+		var myLatlng = new google.maps.LatLng(myMapMarker.lat,myMapMarker.lng);
+		
+		var marker = new google.maps.Marker({
+			position: myLatlng,
+			map: _map,
+			title:myMapMarker.title
+		});
+
+		marker.setMap(_map);
+		
+		google.maps.event.addListener(marker, 'click', function() {
+			_map.setZoom(12);
+			_map.setCenter(marker.getPosition());
+		});
+		}
+		*/
+		
+		/*
+var c = document.createElement('canvas');
+var cx = c.getContext('2d');
+function imagetocanvas( img, thumbwidth, thumbheight, crop, background ) {
+  c.width = thumbwidth;
+  c.height = thumbheight;
+  var dimensions = resize( img.width, img.height, thumbwidth, thumbheight );
+  if ( crop ) {
+    c.width = dimensions.w;
+    c.height = dimensions.h;
+    dimensions.x = 0;
+    dimensions.y = 0;
+  }
+  if ( background !== 'transparent' ) {
+    cx.fillStyle = background;
+    cx.fillRect ( 0, 0, thumbwidth, thumbheight );
+  }
+  cx.drawImage(
+    img, dimensions.x, dimensions.y, dimensions.w, dimensions.h
+  );
+  addtothumbslist( true, 1 );
+};
+
+function addtothumbslist( jpeg, quality ) {
+  var thumb = new Image(),
+      url = jpeg ? c.toDataURL( 'image/jpeg' , quality ) : c.toDataURL();
+  thumb.src = url;
+  thumb.title = Math.round( url.length / 1000 * 100 ) / 100 + ' KB';
+  $('#imagePane').append( thumb );
+};
+*/
+	
+
+function MapyMarker(){
+	this.markerInstance = '';
+	this.lat = '';
+	this.lng = '';
+	this.title = '';
+	this.pictureID = '';
+	this.loadyImage = '';
+}
+
+MapyMarker.prototype.setCoords = function(markerLat, markerLng){
+	this.lat = markerLat;
+	this.lng = markerLng;
+}
+
+MapyMarker.prototype.setTitle = function(title){
+	this.title = title;
+}
+
+MapyMarker.prototype.setPictureID = function(picID){
+	this.pictureID = picID;
+}
+
+MapyMarker.prototype.setLoadImage = function(loadImageFunction){
+	this.loadyImage = loadImageFunction;
+}
+
+
+var markers = [];
+MapyMarker.prototype.createInstance = function(){
+		
+			var myLatlng = new google.maps.LatLng(this.lat,this.lng);
+			var thisMarker = this;
+			
+			var marker = new google.maps.Marker({
+				position: myLatlng,
+				map: _map,
+				title:this.title
+			});
+			
+			google.maps.event.addListener(marker, 'click', function(currentMarker) {
+				var canvas = document.createElement('canvas');
+				return thisMarker.loadyImage(orginalPictureCollection[currentMarker.pictureID],600, 500, canvas, false, 'Random NAme');
+			}(thisMarker));
+			
+			/* Zoom click on google map marker
+			google.maps.event.addListener(marker, 'click', function() {
+				_map.setZoom(Math.ceil(_map.getZoom() * 1.2));
+				_map.setCenter(marker.getPosition());
+			});
+			*/
+			markers.push(marker);
+			
+			this.markerInstance = marker;
+}
+
+		
+function Media(){
+	this.id = '';
+	this.title = '';
+	this.description = '';
+	this.url = '';
+	this.marker = '';
+}
+
+Media.prototype.setMarker = function(mapyMarkerInstance) {
+	this.marker = mapyMarkerInstance;
+}
+
+function Picture() {
+  Media.call(this); // call super constructor.
+}
+
+var pics = []; //Temp pics array will need to create an array obj
+var orginalPictureCollection = []; //Temp Orginal Pictures FIle Array. Will need to refactor. Look into rereading buffer array.
+
+
+// subclass extends superclass
+Picture.prototype = Object.create(Media.prototype);
+Picture.prototype.constructor = Picture;
+
+	function Parse(bufferData){
+	
+	var pic = new Picture();
+	var parser = window.ExifParser.create(bufferData);
+	var result = parser.parse();
+
+	var photoLat = result.tags['GPSLatitude'];
+	var photoLng = result.tags['GPSLongitude'];
+		
+		if(typeof(photoLat) != "undefined" && typeof(photoLat) != "undefined"){
+				var mapMarker = new MapyMarker();
+				mapMarker.setCoords(photoLat, photoLng);
+				mapMarker.setPictureID(addToPictureCollection(pic));
+				mapMarker.setLoadImage(loadImage('file', 'width', 'height', 'canvas', 'isThumb', 'filename'));
+				mapMarker.createInstance();
+				pic.setMarker = mapMarker;
+				
+				console.log(mapMarker);
+				console.log(pic);
+		}
+		
+	
+	/*Object.keys(result.tags).forEach(function(name) {
+		console.log(name+': ' + result.tags[name]);
+		
+	});
+	*/
+	};
+	
+	function addToPictureCollection(pic) {
+		var picID = 0;
+		if (typeof(pic) != 'undefined') {
+			pics.push(pic);
+			picID = pics.length; //Create obj arrar for pics and method/var for current count
+		}
+		return picID - 1;
+	}
+	
+	var s  = document.querySelector('#filedrag');
+  var o  = document.querySelector('#imagePane');
+  var t  = document.querySelector('#thumbslist');
+  //var c  = document.createElement('canvas');
+  //var cx = c.getContext('2d');
+  var thumbwidth = 100;
+  var thumbheight = 100;
+  var crop = false;
+  var background = 'white';
+  var jpeg = false;
+  var quality = 0.8;
+ 
+  //r.addEventListener('click', purgethumbs, false);
+
+  function init() {
+    if (typeof FileReader !== 'undefined') {
+      document.body.classList.add('dragdrop');
+      s.innerHTML = 'Drop images here';
+      
+      o.addEventListener('click', function (ev) {
+        var t = ev.target;
+        if (t.tagName === 'IMG') {
+          while (t.tagName !== 'LI') {
+            t = t.parentNode;
+          }
+          t.parentNode.removeChild(t);
+        }
+      }, false );
+      s.addEventListener('dragover', function ( ev ) {
+        ev.preventDefault();
+      }, false );
+      s.addEventListener('drop', getfiles, false );
+    }
+  }
+
+  function getfiles(ev) {
+    o.classList.add('doingit');
+    var files = ev.dataTransfer.files,
+        url = window.URL || window.webkitURL,
+        objURL = url.createObjectURL || false;
+	
+	$.each(files, function(index, file){
+		var bufferReader = new FileReader();
+		//var dataReader = new FileReader();
+		bufferReader.onload = function() {
+			  var bufferData = bufferReader.result;
+			  console.log(bufferData);
+			  Parse(bufferData);
+		};
+		bufferReader.readAsArrayBuffer(file);
+		
+		 if(objURL) {
+		 var canvas = document.createElement('canvas');
+          loadImage(url.createObjectURL(file),125, 100, canvas, true, file.name);//Return Blob as a GUID Attached
+		  orginalPictureCollection.push(url.createObjectURL(file));
+		  
+		  
+        } else {
+          /*var reader = new FileReader();
+          reader.readAsDataURL( file );
+          reader.onload = function ( ev ) {
+            loadImage(ev.target.result,file.name);
+          }
+		  */
+		  console.log('Line 354 Error')
+		 }
+	});
+	
+    ev.preventDefault();
+  }
+  
+
+  function loadImage(file, width, height, canvas, isThumb, filename) {
+    var img = new Image();
+    img.src = file;
+    img.onload = function() {
+      imagetocanvas( this, width, height, canvas, isThumb, filename);
+    };
+  }
+  
+  function imagetocanvas( img, width, height, canvas, isThumb, filname) {
+    canvas.width = width;
+    canvas.height = height;
+    var dimensions = resize( img.width, img.height, width, height );
+    /*if ( crop ) {
+      c.width = dimensions.w;
+      c.height = dimensions.h;
+      dimensions.x = 0;
+      dimensions.y = 0;
+    }
+    if ( background !== 'transparent') {
+      cx.fillStyle = background;
+      cx.fillRect ( 0, 0, thumbwidth, thumbheight );
+    }
+	*/
+    canvas.getContext('2d').drawImage(
+      img, dimensions.x, dimensions.y, dimensions.w, dimensions.h
+    );
+	
+	if (isThumb) {
+		addtothumbslist( jpeg, quality, filname, canvas );
+	} else {
+		addToCanvas(jpeg, quality, filname, canvas)
+	}
+  }
+
+   function addToCanvas(jpeg, quality, name, canvas) {
+    var thumb = new Image(),
+        url = jpeg ? canvas.toDataURL('image/jpeg', quality) : canvas.toDataURL();
+    thumb.src = url;
+    var thumbname = name.split('.');
+    thumbname = thumbname[0] + '_tn.' + (jpeg ? 'jpg' : thumbname[1]);
+    thumb.title = thumbname +' ' + Math.round(url.length / 1000 * 100) / 100 + ' KB';
+    thumb.setAttribute('data-filename', thumbname);
+    var item = document.createElement('li');
+    var textlabel = document.createElement('span');
+    textlabel.innerHTML = thumb.title;
+    item.appendChild(thumb);
+    item.appendChild(textlabel);
+    $('.modal-body').html(item);
+	$('#myModal').modal('show');
+  }
+  
+  
+  function addtothumbslist(jpeg, quality, name, canvas) {
+    var thumb = new Image(),
+        url = jpeg ? canvas.toDataURL('image/jpeg', quality) : canvas.toDataURL();
+    thumb.src = url;
+    var thumbname = name.split('.');
+    thumbname = thumbname[0] + '_tn.' + (jpeg ? 'jpg' : thumbname[1]);
+    thumb.title = thumbname +' ' + Math.round(url.length / 1000 * 100) / 100 + ' KB';
+    thumb.setAttribute('data-filename', thumbname);
+    var item = document.createElement('li');
+    var textlabel = document.createElement('span');
+    textlabel.innerHTML = thumb.title;
+    item.appendChild(thumb);
+    item.appendChild(textlabel);
+    t.appendChild(item);
+  }
+  function purgethumbs() {
+    t.innerHTML = '';
+	
+  }
+  function zipit() {
+    var zip = new JSZip();
+    var imgs = o.querySelectorAll('img');
+    var allimgs = imgs.length;
+    while (allimgs--) {
+      zip.file(
+        imgs[allimgs].getAttribute('data-filename'),
+        imgs[allimgs].src.substr(imgs[allimgs].src.indexOf(',') + 1),
+        { base64: true }
+      );
+    }
+    saveAs(
+      zip.generate({type: 'blob'}),
+      'thumbnails.zip'
+    );
+  }
+
+  function resize( imagewidth, imageheight, thumbwidth, thumbheight ) {
+    var w = 0, h = 0, x = 0, y = 0,
+        widthratio  = imagewidth / thumbwidth,
+        heightratio = imageheight / thumbheight,
+        maxratio    = Math.max( widthratio, heightratio );
+    if ( maxratio > 1 ) {
+        w = imagewidth / maxratio;
+        h = imageheight / maxratio;
+    } else {
+        w = imagewidth;
+        h = imageheight;
+    }
+    x = ( thumbwidth - w ) / 2;
+    y = ( thumbheight - h ) / 2;
+    return { w:w, h:h, x:x, y:y };
+  }
+  init();
+
+	</script>
+<!-- <script src="js/canvasthumber.js"></script>-->
+	  </body>
+
+</html>

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style type="text/css">
+      html, body, #map-canvas { height: 100%; margin: 0; padding: 0;}
+    </style>
+    <script type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBEhZM-MZn3LziAR_tkluobrHMlU7yEd8M">
+    </script>
+	<script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+<script src="exif-parser-0.1.7.js"></script>
+	<script>
+
+	var validatedFiles = [];
+	function updateSize() {
+	  var nBytes = 0,
+		  oFiles = document.getElementById("uploadInput").files,
+		  nFiles = oFiles.length;
+	  for (var nFileId = 0; nFileId < nFiles; nFileId++) {
+		nBytes += oFiles[nFileId].size;
+	  }
+	  var sOutput = nBytes + " bytes";
+	  // optional code for multiples approximation
+	  for (var aMultiples = ["KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"], nMultiple = 0, nApprox = nBytes / 1024; nApprox > 1; nApprox /= 1024, nMultiple++) {
+		sOutput = nApprox.toFixed(3) + " " + aMultiples[nMultiple] + " (" + nBytes + " bytes)";
+	  }
+	  // end of optional code
+	  document.getElementById("fileNum").innerHTML = nFiles;
+	  document.getElementById("fileSize").innerHTML = sOutput;
+		
+	}
+	</script>
+	
+    <script type="text/javascript">
+    //  function initialize() {
+	
+	
+       
+		//var addMarkerBtn = document.getElementById('submit');
+     // }
+     // google.maps.event.addDomListener(window, 'load', initialize);
+	  
+	//  google.maps.event.addDomListener(addMarkerBtn, 'click', addMapMarker);
+	  
+	  function addMapMarker(location) {
+		  var marker = new google.maps.Marker({
+			position: location,
+			map: map
+		  });
+		  markers.push(marker);
+		}
+
+
+    </script>
+  </head>
+  <body>
+  
+  
+<div id="fileNum"></div>
+<div id="fileSize"></div>
+<form name="uploadForm">
+<input type="hidden" id="MAX_FILE_SIZE" name="MAX_FILE_SIZE" value="300000" />
+	<label for="uploadInput">Files to upload:</label>
+	<input type="file" id="uploadInput" type="file" name="myFiles" onchange="updateSize();" multiple="multiple" />
+	<div id="filedrag">or drop files here</div>
+<p><input type="button" id="submit" onclick="getInfo()" value="Do it"></p>
+</form>
+<div id="messages">
+<p>Status Messages</p>
+</div>
+
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-8">
+			<div id="map-canvas" style="height:500px;"></div>
+		</div><!-- col-md-8 -->
+		
+		<div class="col-md-4">
+			<div id="imagePane">
+			</div>
+		</div><!-- col-md-4 -->
+	</div><!-- Row -->
+</div><!-- Container-fluid-->
+
+
+
+  
+  <script>
+  
+  
+		var mapOptions = {
+			  center: { lat: 29.231666666666666, lng: -103.33416666666666},
+			  zoom: 8
+		};
+		
+		var _map = new google.maps.Map(document.getElementById('map-canvas'),
+			mapOptions);
+
+		//function MapyMarker(markerLat, markerLng, title){
+		//	this.lat = markerLat;
+		//	this.lng = markerLng;
+		//	this.title = title;
+		//}
+	  /*
+	  function createMapMarker(myMapMarker) {
+		var myLatlng = new google.maps.LatLng(myMapMarker.lat,myMapMarker.lng);
+		
+		var marker = new google.maps.Marker({
+			position: myLatlng,
+			map: _map,
+			title:myMapMarker.title
+		});
+
+		marker.setMap(_map);
+		
+		google.maps.event.addListener(marker, 'click', function() {
+			_map.setZoom(12);
+			_map.setCenter(marker.getPosition());
+		});
+		}
+		*/
+	
+	
+
+function MapyMarker(){
+	this.markerInstance = '';
+	this.lat = '';
+	this.lng = '';
+	this.title = '';
+}
+
+MapyMarker.prototype.setCoords = function(markerLat, markerLng){
+	this.lat = markerLat;
+	this.lng = markerLng;
+}
+
+MapyMarker.prototype.setTitle = function(title){
+	this.title = title;
+}
+
+MapyMarker.prototype.createInstance = function(){
+		
+			var myLatlng = new google.maps.LatLng(this.lat,this.lng);
+			
+			var marker = new google.maps.Marker({
+				position: myLatlng,
+				map: _map,
+				title:this.title
+			});
+			
+			google.maps.event.addListener(marker, 'click', function() {
+				_map.setZoom(Math.ceil(_map.getZoom() * 1.2));
+				_map.setCenter(marker.getPosition());
+			});
+			
+			this.markerInstance = marker;
+
+}
+
+		
+function Media(){
+	this.id = '';
+	this.title = '';
+	this.description = '';
+	this.url = '';
+	this.marker = '';
+}
+
+Media.prototype.setMarker = function(mapyMarkerInstance) {
+	this.marker = mapyMarkerInstance;
+}
+
+/*
+Media.prototype.create = function() {
+	this.id = '';
+	this.title ='';
+	this.url = '';
+	this.marker = '';
+}
+*/
+
+/*
+ function createMapMarker() {
+	var myLatlng = new google.maps.LatLng(this.lat,this.lng);
+	
+	var marker = new google.maps.Marker({
+		position: myLatlng,
+		map: _map,
+		title:this.title
+	});
+	
+	return marker;
+});
+*/
+
+function Picture() {
+  Media.call(this); // call super constructor.
+}
+
+// subclass extends superclass
+Picture.prototype = Object.create(Media.prototype);
+Picture.prototype.constructor = Picture;
+
+
+	function getInfo() {
+
+	//var exifParser = require('../index');
+
+	//var buf = require('fs').readFileSync(process.argv[2]);
+
+	
+	
+	var files =  document.getElementById('uploadInput').files;
+
+	
+	$.each(files, function(index, file){
+	
+	
+		var bufferReader = new FileReader();
+		var dataReader = new FileReader();
+		bufferReader.onload = function() {
+       
+			  var bufferData = bufferReader.result;
+			  console.log(bufferData);
+			  Parse(bufferData);
+
+			
+		};
+		
+		bufferReader.readAsArrayBuffer(file)
+		
+      // Closure to capture the file information.
+		dataReader.onload = (function(theFile) {
+			return function(e) {
+			console.log(theFile);
+			console.log(e);
+					  // Render thumbnail.
+					  var span = document.createElement('span');
+					  span.innerHTML = ['<img width="350" height="200" class="thumb" src="', e.target.result,
+										'" title="', escape(theFile.name), '"/>'].join('');
+					  $(span).attr('style', 'float:left; padding:10px;')
+					  $('#imagePane').append(span);
+						};
+			  })(file);
+				  
+
+				  // Read in the image file as a data URL.
+				  dataReader.readAsDataURL(file);
+	});
+	
+	};
+
+	function Parse(bufferData){
+	
+	var pic = new Picture();
+	var parser = window.ExifParser.create(bufferData);
+	var result = parser.parse();
+
+	var photoLat = result.tags['GPSLatitude'];
+	var photoLng = result.tags['GPSLongitude'];
+		
+		if(typeof(photoLat) != "undefined" && typeof(photoLat) != "undefined"){
+				var mapMarker = new MapyMarker();
+				mapMarker.setCoords(photoLat, photoLng)
+				mapMarker.createInstance();
+				pic.setMarker = mapMarker;
+				console.log(mapMarker);
+				console.log(pic);
+		}
+		
+		
+	/*Object.keys(result.tags).forEach(function(name) {
+		console.log(name+': ' + result.tags[name]);
+		
+	});
+	*/
+	};
+
+	</script>
+	  </body>
+
+</html>
